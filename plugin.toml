@@ -2,47 +2,5 @@ name = "Slow Chemical Synapse"
 kind = "slow_chemical_synapse"
 version = "0.1.0"
 description = "Slow chemical synapse model with pre/post inputs."
-supports_start_stop = true
-supports_restart = true
 library = "libslow-chemical-synapse.so"
-extendable_inputs = false
-auto_extend_inputs = false
-connection_dependent = false
-loads_started = true
 
-[[inputs]]
-name = "pre"
-
-[[inputs]]
-name = "post"
-
-[[outputs]]
-name = "i_syn"
-
-[[variables]]
-name = "g_slow"
-default = 0.046
-
-[[variables]]
-name = "e_syn"
-default = -1.92
-
-[[variables]]
-name = "s_slow"
-default = 1.0
-
-[[variables]]
-name = "v_slow"
-default = -1.74
-
-[[variables]]
-name = "k_1x"
-default = 0.74
-
-[[variables]]
-name = "k_2x"
-default = 0.007
-
-[[variables]]
-name = "time_increment"
-default = 0.0015

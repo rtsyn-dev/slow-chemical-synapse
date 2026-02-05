@@ -1,7 +1,6 @@
 use rtsyn_plugin::{PluginApi, PluginString};
 use serde_json::Value;
 use std::ffi::c_void;
-use std::ptr;
 
 const INPUTS: &[&str] = &["pre", "post"];
 const OUTPUTS: &[&str] = &["i_syn"];
@@ -51,22 +50,19 @@ extern "C" fn destroy(handle: *mut c_void) {
 }
 
 extern "C" fn meta_json(_: *mut c_void) -> PluginString {
-    PluginString::from_string(
-        serde_json::json!({
-            "name": "Slow Chemical Synapse",
-            "kind": "slow_chemical_synapse",
-            "variables": {
-                "g_slow": 0.046,
-                "e_syn": -1.92,
-                "s_slow": 1.0,
-                "v_slow": -1.74,
-                "k_1x": 0.74,
-                "k_2x": 0.007,
-                "time_increment": 0.0015
-            }
-        })
-        .to_string(),
-    )
+    let value = serde_json::json!({
+        "name": "Slow Chemical Synapse",
+        "default_vars": [
+            ["g_slow", 0.046],
+            ["e_syn", -1.92],
+            ["s_slow", 1.0],
+            ["v_slow", -1.74],
+            ["k_1x", 0.74],
+            ["k_2x", 0.007],
+            ["time_increment", 0.0015]
+        ]
+    });
+    PluginString::from_string(value.to_string())
 }
 
 extern "C" fn inputs_json(_: *mut c_void) -> PluginString {
@@ -76,6 +72,25 @@ extern "C" fn inputs_json(_: *mut c_void) -> PluginString {
 extern "C" fn outputs_json(_: *mut c_void) -> PluginString {
     PluginString::from_string(serde_json::to_string(OUTPUTS).unwrap())
 }
+extern "C" fn behavior_json(_handle: *mut c_void) -> PluginString {
+    let behavior = serde_json::json!({
+        "supports_start_stop": true,
+        "supports_restart": true,
+        "extendable_inputs": {"type": "none"},
+        "loads_started": true
+    });
+    PluginString::from_string(behavior.to_string())
+}
+
+extern "C" fn ui_schema_json(_handle: *mut c_void) -> PluginString {
+    let schema = serde_json::json!({
+        "outputs": ["i_syn"],
+        "inputs": [],
+        "variables": ["g_slow", "e_syn", "s_slow", "v_slow", "k_1x", "k_2x", "time_increment"]
+    });
+    PluginString::from_string(schema.to_string())
+}
+
 
 extern "C" fn set_config_json(handle: *mut c_void, data: *const u8, len: usize) {
     if handle.is_null() || data.is_null() {
@@ -125,7 +140,7 @@ extern "C" fn set_input(handle: *mut c_void, name: *const u8, len: usize, value:
     }
 }
 
-extern "C" fn process(handle: *mut c_void, _: u64) {
+extern "C" fn process(handle: *mut c_void, _tick: u64, _period: f64) {
     if handle.is_null() {
         return;
     }
@@ -161,6 +176,8 @@ pub extern "C" fn rtsyn_plugin_api() -> *const PluginApi {
         meta_json,
         inputs_json,
         outputs_json,
+        behavior_json: Some(behavior_json),
+        ui_schema_json: Some(ui_schema_json),
         set_config_json,
         set_input,
         process,
